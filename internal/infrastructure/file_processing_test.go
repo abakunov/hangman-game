@@ -8,10 +8,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	. "hangman-game/internal/infrastructure"
+
+	"hangman-game/internal/infrastructure"
 )
 
-// Mock for HangmanReadCloser
+// Mock for HangmanReadCloser.
 type MockHangmanReadCloser struct {
 	mock.Mock
 }
@@ -26,7 +27,7 @@ func (m *MockHangmanReadCloser) Close() error {
 	return args.Error(0)
 }
 
-// Test for OpenFile function
+// Test for OpenFile function.
 func TestOpenFile_Success(t *testing.T) {
 	filePath := "test_file.json"
 	// Create a temporary file for testing
@@ -45,25 +46,23 @@ func TestOpenFile_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test OpenFile
-	gotFile, err := OpenFile(filePath)
+	gotFile, err := infrastructure.OpenFile(filePath)
 	assert.NoError(t, err)
 	assert.NotNil(t, gotFile)
-	defer func(gotFile HangmanReadCloser) {
-		err := gotFile.Close()
-		if err != nil {
-			t.Errorf("Error closing file: %v", err)
-		}
-	}(gotFile) // Ensure the file is closed after test
+
+	if err := gotFile.Close(); err != nil {
+		t.Errorf("Error closing file: %v", err)
+	}
 }
 
 func TestOpenFile_FileNotFound(t *testing.T) {
 	filePath := "non_existent_file.json"
-	gotFile, err := OpenFile(filePath)
+	gotFile, err := infrastructure.OpenFile(filePath)
 	assert.Error(t, err)
 	assert.Nil(t, gotFile)
 }
 
-// Test for DecodeCategoriesFromFile function
+// Test for DecodeCategoriesFromFile function.
 func TestDecodeCategoriesFromFile_Success(t *testing.T) {
 	mockFile := new(MockHangmanReadCloser)
 
@@ -80,7 +79,7 @@ func TestDecodeCategoriesFromFile_Success(t *testing.T) {
 	})
 	mockFile.On("Close").Return(nil)
 
-	gotCategories, err := DecodeCategoriesFromFile(mockFile)
+	gotCategories, err := infrastructure.DecodeCategoriesFromFile(mockFile)
 
 	assert.NoError(t, err)
 	assert.Equal(t, categories, gotCategories)
@@ -94,14 +93,14 @@ func TestDecodeCategoriesFromFile_DecodeError(t *testing.T) {
 	// Provide invalid JSON
 	mockFile.On("Read", mock.Anything).Return(0, errors.New("read error"))
 
-	gotCategories, err := DecodeCategoriesFromFile(mockFile)
+	gotCategories, err := infrastructure.DecodeCategoriesFromFile(mockFile)
 
 	assert.Error(t, err)
 	assert.Nil(t, gotCategories)
 	mockFile.AssertExpectations(t)
 }
 
-// Test for LoadWordsFromFile function
+// Test for LoadWordsFromFile function.
 func TestLoadWordsFromFile_Success(t *testing.T) {
 	filePath := "test_file.json"
 	categories := map[string][]string{
@@ -109,7 +108,8 @@ func TestLoadWordsFromFile_Success(t *testing.T) {
 		"fruits":  {"apple", "banana"},
 	}
 	data, _ := json.Marshal(categories)
-	_ = os.WriteFile(filePath, data, 0644)
+	_ = os.WriteFile(filePath, data, 0o600)
+
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
@@ -117,14 +117,14 @@ func TestLoadWordsFromFile_Success(t *testing.T) {
 		}
 	}(filePath) // Clean up after test
 
-	gotCategories, err := LoadWordsFromFile(filePath)
+	gotCategories, err := infrastructure.LoadWordsFromFile(filePath)
 	assert.NoError(t, err)
 	assert.Equal(t, categories, gotCategories)
 }
 
 func TestLoadWordsFromFile_OpenFileError(t *testing.T) {
 	filePath := "non_existent_file.json"
-	gotCategories, err := LoadWordsFromFile(filePath)
+	gotCategories, err := infrastructure.LoadWordsFromFile(filePath)
 	assert.Error(t, err)
 	assert.Nil(t, gotCategories)
 }

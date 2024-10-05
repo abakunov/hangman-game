@@ -12,6 +12,7 @@ func OpenFile(filePath string) (HangmanReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return file, nil
 }
 
@@ -25,9 +26,11 @@ func DecodeCategoriesFromFile(file HangmanReadCloser) (map[string][]string, erro
 
 	var categories map[string][]string
 	err := json.NewDecoder(file).Decode(&categories)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return categories, nil
 }
 
@@ -36,5 +39,6 @@ func LoadWordsFromFile(filePath string) (map[string][]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return DecodeCategoriesFromFile(file)
 }

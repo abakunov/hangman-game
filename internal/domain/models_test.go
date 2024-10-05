@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"hangman-game/internal/domain"
 )
 
@@ -85,6 +86,7 @@ func TestHangmanGame_Guess(t *testing.T) {
 	}
 
 	g := domain.NewHangmanGame("hangman", 5)
+
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 			// Вызов функции
