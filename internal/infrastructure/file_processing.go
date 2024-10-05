@@ -3,18 +3,20 @@ package infrastructure
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 )
 
-// LoadWordsFromFile loads categories and words from a JSON file.
-func LoadWordsFromFile(filePath string) (map[string][]string, error) {
+func OpenFile(filePath string) (HangmanReadCloser, error) {
 	file, err := os.Open(filePath)
-
 	if err != nil {
 		return nil, err
 	}
+	return file, nil
+}
 
-	defer func(file *os.File) {
+func DecodeCategoriesFromFile(file HangmanReadCloser) (map[string][]string, error) {
+	defer func(file io.ReadCloser) {
 		err := file.Close()
 		if err != nil {
 			fmt.Println("Error closing file:", err)
@@ -22,11 +24,17 @@ func LoadWordsFromFile(filePath string) (map[string][]string, error) {
 	}(file)
 
 	var categories map[string][]string
-	err = json.NewDecoder(file).Decode(&categories)
-
+	err := json.NewDecoder(file).Decode(&categories)
 	if err != nil {
 		return nil, err
 	}
-
 	return categories, nil
+}
+
+func LoadWordsFromFile(filePath string) (map[string][]string, error) {
+	file, err := OpenFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+	return DecodeCategoriesFromFile(file)
 }
